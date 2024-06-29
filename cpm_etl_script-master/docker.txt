@@ -1,0 +1,7 @@
+sudo docker run -itd \
+--name cpm_etl_script \
+-v /opt/projects/cpm_etl_script:/cpm_etl_script \
+-v /opt/data/cpm_etl:/cpm_etl \
+--restart=unless-stopped \
+cpm_etl_script:0.2 \
+sh services.sh

@@ -1,0 +1,223 @@
+config:
+  failure.emails: gu_zhaozhou@wuxibiologics.com
+  success.emails: gu_zhaozhou@wuxibiologics.com
+
+nodes:
+  - name: login
+    type: command
+    config:
+      command: docker exec cpm_spider python cpm_spider/spiders/cpm_login.py
+
+  - name: quotation_List
+    type: command
+    config:
+      command: docker exec cpm_spider python cpm_spider/spiders/cpm_quotation_list.py
+    dependsOn:
+      - login
+
+  - name: quotation_header
+    type: command
+    config:
+      command: docker exec cpm_spider python cpm_spider/spiders/cpm_quotation_header.py
+    dependsOn:
+      - etl_quotation_List
+    condition: all_success && ${etl_new_data_from_quotation_list:res} != 4
+
+  - name: quotation_amount_period
+    type: command
+    config:
+      command: docker exec cpm_spider python cpm_spider/spiders/cpm_quotation_amount_period.py
+    dependsOn:
+      - quotation_header
+
+  - name: quotation_gene_synthesis
+    type: command
+    config:
+      command: docker exec cpm_spider python cpm_spider/spiders/cpm_quotation_gene_synthesis.py
+    dependsOn:
+      - quotation_header
+
+  - name: quotation_gene_synthesis_part2
+    type: command
+    config:
+      command: docker exec cpm_spider python cpm_spider/spiders/cpm_quotation_gene_synthesis_part2.py
+    dependsOn:
+      - quotation_header
+
+  - name: cpm_pcr_cloning_list
+    type: command
+    config:
+      command: docker exec cpm_spider python cpm_spider/spiders/cpm_pcr_cloning_list.py
+    dependsOn:
+      - quotation_header
+
+  - name: cpm_pcr_cloning_sequence
+    type: command
+    config:
+      command: docker exec cpm_spider python cpm_spider/spiders/cpm_pcr_cloning_sequence.py
+    dependsOn:
+      - quotation_header
+
+  - name: cpm_plasmid_preparation_list
+    type: command
+    config:
+      command: docker exec cpm_spider python cpm_spider/spiders/cpm_plasmid_preparation_list.py
+    dependsOn:
+      - quotation_header
+
+  - name: cpm_plasmid_preparation_sequence
+    type: command
+    config:
+      command: docker exec cpm_spider python cpm_spider/spiders/cpm_plasmid_preparation_sequence.py
+    dependsOn:
+      - quotation_header
+
+  - name: cpm_point_mutation_list
+    type: command
+    config:
+      command: docker exec cpm_spider python cpm_spider/spiders/cpm_point_mutation_list.py
+    dependsOn:
+      - quotation_header
+
+  - name: cpm_point_mutation_sequence
+    type: command
+    config:
+      command: docker exec cpm_spider python cpm_spider/spiders/cpm_point_mutation_sequence.py
+    dependsOn:
+      - quotation_header
+
+  - name: cpm_admin_quotation_file
+    type: command
+    config:
+      command: docker exec cpm_spider python cpm_spider/spiders/cpm_admin_quotation_file.py
+    dependsOn:
+      - etl_quotation_List
+    condition: all_success && ${etl_new_data_from_quotation_list:res} != 4
+
+
+
+
+
+  - name: etl_new_data_from_quotation_list
+    type: command
+    config:
+      command: sh cpm_work_flow/start_spider_condition.sh
+    dependsOn:
+      - quotation_List
+
+  - name: etl_quotation_List
+    type: command
+    config:
+      command: docker exec cpm_etl_script python etl_spider_data/etl_quotation_list.py
+    dependsOn:
+      - etl_new_data_from_quotation_list
+
+  - name: etl_quotation_header
+    type: command
+    config:
+      command: docker exec cpm_etl_script python etl_spider_data/etl_quotation_header.py
+    dependsOn:
+      - quotation_header
+
+  - name: etl_quotation_amount_period
+    type: command
+    config:
+      command: docker exec cpm_etl_script python etl_spider_data/etl_quotation_amount_period.py
+    dependsOn:
+      - quotation_amount_period
+
+  - name: etl_quotation_gene_synthesis
+    type: command
+    config:
+      command: docker exec cpm_etl_script python etl_spider_data/etl_quotation_gene_synthesis.py
+    dependsOn:
+      - quotation_gene_synthesis
+      - quotation_gene_synthesis_part2
+
+  - name: etl_pcr_cloning_list
+    type: command
+    config:
+      command: docker exec cpm_etl_script python etl_spider_data/etl_pcr_cloning_list.py
+    dependsOn:
+      - cpm_pcr_cloning_list
+
+  - name: etl_pcr_cloning_sequence
+    type: command
+    config:
+      command: docker exec cpm_etl_script python etl_spider_data/etl_pcr_cloning_sequence.py
+    dependsOn:
+      - cpm_pcr_cloning_sequence
+
+  - name: etl_plasmid_preparation_list
+    type: command
+    config:
+      command: docker exec cpm_etl_script python etl_spider_data/etl_plasmid_preparation_list.py
+    dependsOn:
+      - cpm_plasmid_preparation_list
+
+  - name: etl_plasmid_preparation_sequence
+    type: command
+    config:
+      command: docker exec cpm_etl_script python etl_spider_data/etl_plasmid_preparation_sequence.py
+    dependsOn:
+      - cpm_plasmid_preparation_sequence
+
+  - name: etl_point_mutation_list
+    type: command
+    config:
+      command: docker exec cpm_etl_script python etl_spider_data/etl_point_mutation_list.py
+    dependsOn:
+      - cpm_point_mutation_list
+
+  - name: etl_point_mutation_sequence
+    type: command
+    config:
+      command: docker exec cpm_etl_script python etl_spider_data/etl_point_mutation_sequence.py
+    dependsOn:
+      - cpm_point_mutation_sequence
+
+  - name: mv_spider_temp_file
+    type: command
+    config:
+      command: mv /opt/projects/cpm_spider/files/_temp /opt/data/cpm_etl/_temp
+    dependsOn:
+      - cpm_admin_quotation_file
+
+  - name: etl_admin_quotation_file
+    type: command
+    config:
+      command: docker exec cpm_etl_script python etl_spider_data/etl_admin_quotation_file.py
+    dependsOn:
+      - mv_spider_temp_file
+      - etl_quotation_gene_synthesis
+
+  - name: clean_up_admin_file
+    type: command
+    config:
+      command: rm -rf /opt/data/cpm_etl/_temp
+    dependsOn:
+      - etl_admin_quotation_file
+
+  - name: cpm_quotation_inform
+    type: command
+    config:
+      command: docker exec cpm_etl_script python etl_cpm_data/cpm_quotation_inform.py
+    dependsOn:
+      - etl_quotation_List
+      - etl_admin_quotation_file
+      - etl_quotation_amount_period
+      - etl_point_mutation_list
+      - etl_point_mutation_sequence
+      - etl_quotation_header
+      - etl_plasmid_preparation_list
+      - etl_plasmid_preparation_sequence
+      - etl_pcr_cloning_list
+      - etl_pcr_cloning_sequence
+    condition: all_success && ${etl_new_data_from_quotation_list:res} != 4
+
+  - name: clean_up_attachment
+    type: command
+    config:
+      command: docker exec cpm_etl_script rm -rf utils/_temp
+    dependsOn:
+      - cpm_quotation_inform

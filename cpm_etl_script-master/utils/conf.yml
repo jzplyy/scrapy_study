@@ -1,0 +1,9 @@
+mysql:
+ host: 10.13.123.147
+ port: 3306
+ user: root
+ password: sbdData022#
+
+mongodb:
+ uri: mongodb://root:sbdMon024#@10.13.123.147:27017
+

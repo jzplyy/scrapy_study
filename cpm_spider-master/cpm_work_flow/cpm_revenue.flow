@@ -1,0 +1,9 @@
+config:
+  failure.emails: lu_jingzheng@wuxibiologics.com
+  success.emails: lu_jingzheng@wuxibiologics.com
+
+nodes:
+  - name: cpm_revenue
+    type: command
+    config:
+      command: docker exec cpm_etl_script python etl_cpm_data/cpm_revenue.py /cpm_etl
